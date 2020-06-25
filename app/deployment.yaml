@@ -1,0 +1,232 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-api
+  namespace: hackfest
+  labels:
+    app: data-api
+        
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: data-api
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1 
+  template:
+    metadata:
+      labels:
+        app: data-api
+    spec:
+      containers:
+      - name: data-api
+        image: canarysacr.azurecr.io/data:latest 
+        env:
+        - name: MONGODB_CONNECTION
+          valueFrom:
+            secretKeyRef:
+              name: mongodb
+              key: db    
+        - name: INSTRUMENT-key
+          valueFrom:
+            secretKeyRef:
+               name: instrument
+               key:  INSTRUMENTATION_KEY          
+        ports:
+        - containerPort: 80
+        imagePullPolicy: Always   
+        resources:
+          requests:        
+            cpu: "300m"
+          limits:          
+            cpu: "600m"
+        
+
+
+  
+---
+
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flights-api
+  namespace: hackfest
+  labels:
+    app: flights-api
+        
+spec:
+  replicas: 1  
+  selector:
+    matchLabels:
+      app: flights-api
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1 
+  template:
+    metadata:
+      labels:
+        app: flights-api
+    spec:
+      containers:
+      - name: flights-api
+        image: canarysacr.azurecr.io/flight:latest
+        env:
+        - name: INSTRUMENTATION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: instrument
+              key: INSTRUMENTATION_KEY
+        - name: dataservice
+          valueFrom:
+             secretKeyRef:
+                name: dataservice
+                key:  DATA_SERVICE_URI
+        ports:
+        - containerPort: 80
+        imagePullPolicy: Always   
+       
+
+  
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quakes-api
+  namespace: hackfest
+  labels:
+    app: quakes-api
+        
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quakes-api
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1 
+  template:
+    metadata:
+      labels:
+        app: quakes-api
+    spec:
+      containers:
+      - name: quakes-api
+        image: canarysacr.azurecr.io/quakes:latest
+        env:
+        - name: INSTRUMENTATION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: instrument
+              key: INSTRUMENTATION_KEY
+        - name: dataservice
+          valueFrom:
+            secretKeyRef:
+               name: dataservice
+               key: DATA_SERVICE_URI               
+        ports:
+        - containerPort: 80
+        imagePullPolicy: Always   
+        resources:
+          requests:        
+            cpu: "200m"
+          limits:          
+            cpu: "600m"
+        
+
+  
+  
+  
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-api
+  namespace: hackfest
+  labels:
+    app: service-api
+        
+spec:
+  replicas: 2  
+  selector:
+    matchLabels:
+      app: service-api
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1 
+  template:
+    metadata:
+      labels:
+        app: service-api
+    spec:
+      containers:
+      - name: service-api
+        image: canarysacr.azurecr.io/service:latest
+        envFrom:
+        - secretKeyRef: quaks
+            name: quaks
+        ports:
+        - containerPort: 80
+        imagePullPolicy: Always   
+       
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-api
+  namespace: hackfest
+  labels:
+    app: weather-api
+        
+spec:
+  replicas: 2 
+  selector:
+    matchLabels:
+      app: weather-api  
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1 
+  template:
+    metadata:
+      labels:
+        app: weather-api
+    spec:
+      containers:
+      - name: weather-api
+        image: canarysacr.azurecr.io/weather:latest
+        env:
+        - name: instrument
+          valueFrom:
+            secretKeyRef:
+              name: instrument
+              key: INSTRUMENTATION_KEY
+        - name: dataservice
+          valueFrom:
+            secretKeyRef:
+               name: dataservice
+               key: DATA_SERVICE_URI               
+        ports:
+        - containerPort: 80
+        imagePullPolicy: Always   

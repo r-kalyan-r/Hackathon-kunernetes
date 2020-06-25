@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flights-api
+  namespace: hackfest
+  labels:
+    app: flights-api
+        
+spec:
+  replicas: 1  
+  selector:
+    matchLabels:
+      app: flights-api
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1 
+  template:
+    metadata:
+      labels:
+        app: flights-api
+      namespace: hackfest 
+    spec:
+      containers:
+      - name: flights-api
+        image: canarysacr.azurecr.io/flight:latest
+        env:
+        - name: APPINSIGHTS_INSTRUMENTATIONKEY
+          value: 5dc30b4d-87f0-408c-bb14-4efe41409271
+        - name: DATA_SERVICE_URI
+          value: http://data-api.hackfest.svc.cluster.local:3009/
+        ports:
+        - containerPort: 3003
+        imagePullPolicy: Always   
+       

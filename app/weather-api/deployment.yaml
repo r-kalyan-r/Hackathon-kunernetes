@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weather-api
+  namespace: hackfest
+  labels:
+    app: weather-api
+        
+spec:
+  replicas: 2 
+  selector:
+    matchLabels:
+      app: weather-api  
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1 
+  template:
+    metadata:
+      labels:
+        app: weather-api
+    spec:
+      containers:
+      - name: weather-api
+        image: canarysacr.azurecr.io/weather:latest
+        env:
+        - name: APPINSIGHTS_INSTRUMENTATIONKEY
+          value: 5dc30b4d-87f0-408c-bb14-4efe41409271
+        - name: DATA_SERVICE_URI
+          value: http://data-api.hackfest.svc.cluster.local:3009/               
+        ports:
+        - containerPort: 3015
+        imagePullPolicy: Always   

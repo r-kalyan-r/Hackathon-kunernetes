@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-api
+  namespace: hackfest
+  labels:
+    app: service-api
+        
+spec:
+  replicas: 2  
+  selector:
+    matchLabels:
+      app: service-api
+  minReadySeconds: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1 
+  template:
+    metadata:
+      labels:
+        app: service-api
+      namespace: hackfest 
+    spec:
+      containers:
+      - name: service-api
+        image: canarysacr.azurecr.io/service:latest
+        env:
+        - name: FLIGHT_API_ROOT
+          value: http://flights-api.hackfest.svc.cluster.local:3003/
+        - name: WEATHER_API_ROOT
+          value: http://weather-api.hackfest.svc.cluster.local:3015/
+        - name: QUAKES_API_ROOT
+          value: http://quakes-api.hackfest.svc.cluster.local:3012/
+        - name: APPINSIGHTS_INSTRUMENTATIONKEY
+          value: 5dc30b4d-87f0-408c-bb14-4efe41409271
+        ports:
+        - containerPort: 8080
+        imagePullPolicy: Always   
